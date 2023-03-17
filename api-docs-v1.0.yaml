@@ -1,0 +1,1691 @@
+openapi: 3.0.1
+info:
+  title: Open ULLP API
+  description: |-
+    Tài liệu tích hợp api cho các sản phẩm bảo hiểm số cho bên thứ 3
+
+    # Introduction
+    API luồng bán ULRP 3.0 được xây dựng quanh khái niệm Process. Process được hiểu là cả tiến trình mua/bán hợp đồng bảo hiểm.
+
+    Danh sách các endpoint:
+    - Create Process
+    - Create Quotation
+    - Confirm Quotation
+    - Submit Application
+    - List package
+    - List occupation
+    - Download file bảng minh họa
+    - Gửi mail bảng minh họa
+    - Policy Detail
+    - Upload file application
+    - Notify Payment
+
+    # Guide
+    Luồng call api làm việc với process từ đầu cho đến khi nộp HSYCBH:
+    - Khi vào đến màn hình luồng bán sản phẩm của MBAL: Create Process
+    - Sau khi điền đủ thông tin cá nhân và bấm xác nhận: Create Quotation
+    - Bấm tiếp tục trên màn bảng minh họa: Confirm Quotation
+    - Điền thông tin người giới thiệu và xác nhận thông tin thanh toán: Submit Application
+
+    # Authentication
+    ### Cơ chế
+    Giao tiếp Server-Server sử dụng cơ chế Basic Auth.
+    Trong đó, 1 client được có 1 cặp ClientId/ClientSecret được sử dụng như usename/password và sử dụng trong mọi request.
+
+    ### Credential
+    | ENV        | ClientId                    | ClientSecret
+    |:-----------|:----------------------------|-----
+    | DEV        | mwcsXt9yKhm4ksgX            | 4xKJG%%SB*z$btTLakZ(QgnLzrIaEq8L
+    | UAT        | 9Ldjne6MwOM6hDLx            | kR$EN57x?c!4LmkYcisxDC36HrJ??Mk@
+    
+    # Domain
+    | ENV        | Domain                      | Status
+    |:-----------|:----------------------------|-----
+    | DEV        | https://api-dev.mbageas.org | AVAILABLE
+    | UAT        | https://api-uat.mbageas.org | AVAILABLE
+    | PROD       | https://api.mbageas.org     | AVAILABLE
+    
+
+    # Exception
+    ```
+    {
+        "statusCode": 422,
+        "messages": [
+            "610001:File not found",
+            "610002:Process not found"
+        ],
+        "errorCode": null,
+    }
+    ```
+    ```
+    {
+        "statusCode": 400,
+        "messages": [
+            "code is required",
+            "name is required"
+        ],
+        "errorCode": null,
+    }
+    ```
+    | Field      | Description            |
+    |:-----------|:-----------------------|
+    | statusCode | Http status code       |
+    | messages   | error code and message |
+    | errorCode  | errorCode              |
+    ---
+
+    # Danh sách API
+  license:
+    name: Apache 2.0
+    url: http://springdoc.org
+  version: 20230317
+  x-logo:
+    url: https://www.mbageas.life/uploads/X-ak5M5lFNEvGXGUzSMkZ/1598613473300_original.png
+    altText: MBAL
+servers:
+- url: http://digital-platform-dev-api.mbageas.org
+  description: Generated server url
+tags:
+- name: ULRP 3.0
+  description: UlRP 3.0
+- name: ULSP
+  description: ULSP
+- name: ULRP
+  description: ULRP
+- name: Occupation
+  description: Occupation
+- name: Policy
+  description: Policy
+paths:
+  /api/v1/ulsp/quotation:
+    post:
+      tags:
+      - ULSP
+      operationId: Generate quotation ULSP
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateQuotationRequest'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/QuotationModel'
+  /api/v1/ulrp30/quotation:
+    post:
+      tags:
+      - ULRP 3.0
+      operationId: Generate quotation ULRP 3.0
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateQuotationRequest'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/QuotationModel'
+  /api/v1/ulrp/quotation:
+    post:
+      tags:
+      - ULRP
+      operationId: Generate quotation ULRP
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateQuotationRequest'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/QuotationModel'
+  /api/v1/ullp/processes:
+    post:
+      tags:
+      - ULRP 3.0
+      summary: Create Process
+      description: Create new process
+      operationId: createProcess
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUlProcessRequest'
+        required: true
+      responses:
+        "200":
+          description: Process information
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/UlProcessResponse'
+  /api/v1/ullp/processes/{id}/quotation:
+    post:
+      tags:
+      - ULRP 3.0
+      summary: Create Quotation
+      description: Create quotation
+      operationId: createQuotation
+      parameters:
+      - name: processId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuotationRequest'
+        required: true
+      responses:
+        "200":
+          description: Process information
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/UlProcessResponse'
+  /api/v1/ullp/processes/{id}/quotation/email:
+    post:
+      tags:
+      - ULRP 3.0
+      summary: Send email
+      description: Send Email
+      operationId: sendQuotationEmail
+      parameters:
+      - name: processId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendEmailRequest'
+        required: true
+      responses:
+        "200":
+          description: Http status 200
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorModel'
+  /api/v1/ullp/processes/{id}/quotation/confirmation:
+    post:
+      tags:
+      - ULRP 3.0
+      summary: Confirm Quotation
+      description: Confirm a quotation
+      operationId: confirmQuotation
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: Http status 200
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/UlProcessResponse'
+  /api/v1/ullp/processes/{id}/files:
+    post:
+      tags:
+      - ULRP 3.0
+      operationId: Upload File Application
+      summary: Upload File Application
+      parameters:
+      - name: processId
+        in: query
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+              - files
+              type: object
+              properties:
+                files:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/FileUploadResponse'
+  /api/v1/ullp/processes/{id}/application/submission:
+    post:
+      tags:
+      - ULRP 3.0
+      summary: Submit Application
+      description: Submit Application
+      operationId: submitApplication
+      parameters:
+      - name: processId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApplicationRequest'
+        required: true
+      responses:
+        "200":
+          description: Process information
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/UlProcessResponse'
+  /api/v1/ullp/payment-notifications:
+    post:
+      tags:
+      - ULRP 3.0
+      operationId: Notify Payment
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NotifyPaymentModel'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/NotifyPaymentResultModel'
+  # /api/v1/ulk/quotation:
+  #   post:
+  #     tags:
+  #     - ULRP-3.0
+  #     operationId: createUlkQuotation
+  #     requestBody:
+  #       content:
+  #         application/json:
+  #           schema:
+  #             $ref: '#/components/schemas/CreateQuotationRequest'
+  #       required: true
+  #     responses:
+  #       "200":
+  #         description: OK
+  #         content:
+  #           '*/*':
+  #             schema:
+  #               $ref: '#/components/schemas/QuotationModel'
+  /api/v1/ulsp/quotations/completed-pdf:
+    get:
+      tags:
+      - ULSP
+      operationId: Download ULSP PDF
+      parameters:
+      - name: quotationId
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: submissionId
+        in: query
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  type: string
+                  format: byte
+  /api/v1/ulrp30/quotations/completed-pdf:
+    get:
+      tags:
+      - ULRP 3.0
+      operationId: download ULRP 3.0 PDF
+      parameters:
+      - name: quotationId
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: submissionId
+        in: query
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/pdf:
+              schema:
+                type: array
+                items:
+                  type: string
+                  format: byte
+  /api/v1/ulrp/quotations/completed-pdf:
+    get:
+      tags:
+      - ULRP
+      operationId: Download ULRP PDF
+      parameters:
+      - name: quotationId
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: submissionId
+        in: query
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/pdf:
+              schema:
+                type: array
+                items:
+                  type: string
+                  format: byte
+  # /api/v1/ullp/processes/{id}:
+  #   get:
+  #     tags:
+  #     - ULRP 3.0
+  #     summary: Get process detail
+  #     description: Get process detail
+  #     operationId: getProcess
+  #     parameters:
+  #     - name: processId
+  #       in: path
+  #       required: true
+  #       schema:
+  #         type: integer
+  #         format: int64
+  #     responses:
+  #       "200":
+  #         description: Process information
+  #         content:
+  #           '*/*':
+  #             schema:
+  #               $ref: '#/components/schemas/UlProcessResponse'
+  /api/v1/ullp/processes/{id}/quotation/file:
+    get:
+      tags:
+      - ULRP 3.0
+      summary: Get PDF Quotation
+      description: Get pdf of quotation
+      operationId: downloadQuotationFile
+      parameters:
+      - name: processId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: File pdf
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  type: string
+                  format: byte
+  /api/v1/ullp/packages:
+    get:
+      tags:
+      - ULRP 3.0
+      summary: List Package
+      description: List Package
+      operationId: getAllPackages
+      responses:
+        default:
+          description: Api has error or exception
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorModel'
+        "200":
+          description: List package
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PackageViewResponse'
+  # /api/v1/ulk/quotations/completed-pdf:
+  #   get:
+  #     tags:
+  #     - ULRP-3.0
+  #     operationId: downloadUlkPDF
+  #     parameters:
+  #     - name: quotationId
+  #       in: query
+  #       required: true
+  #       schema:
+  #         type: string
+  #     - name: submissionId
+  #       in: query
+  #       required: true
+  #       schema:
+  #         type: string
+  #     responses:
+  #       "200":
+  #         description: OK
+  #         content:
+  #           application/pdf:
+  #             schema:
+  #               type: array
+  #               items:
+  #                 type: string
+  #                 format: byte
+  /api/v1/policy:
+    get:
+      tags:
+      - Policy
+      operationId: Policy Detail
+      parameters:
+      - name: appNumber
+        in: query
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/PolicyResponse'
+  /api/v1/occupations:
+    get:
+      tags:
+      - Occupation
+      operationId: List Occupation
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OccupationResponse'
+
+components:
+  schemas:
+    AdditionalProduct:
+      type: object
+      properties:
+        productType:
+          type: string
+          enum:
+          - TRMR
+          - ADDR
+          - HSCR
+          - CIR
+          - PWR
+          - COI_RIDER
+        assuredIndex:
+          type: integer
+          format: int32
+        policyTerm:
+          type: integer
+          format: int32
+        premiumTerm:
+          type: integer
+          format: int32
+        sumAssured:
+          type: number
+    Address:
+      type: object
+      properties:
+        title:
+          type: string
+        name:
+          type: string
+        phoneNumber:
+          type: string
+        zipCode:
+          type: string
+        provinceName:
+          type: string
+        districtName:
+          type: string
+        wardName:
+          type: string
+        line1:
+          type: string
+        line2:
+          type: string
+    Amount:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+          - TOP_UP
+          - WITHDRAW
+        value:
+          type: number
+        startYear:
+          type: integer
+          format: int32
+        endYear:
+          type: integer
+          format: int32
+    Assured:
+      required:
+      - dob
+      - fullName
+      - gender
+      - identificationId
+      - identificationType
+      - type
+      type: object
+      properties:
+        fullName:
+          type: string
+        dob:
+          type: string
+          format: date
+        gender:
+          type: string
+          enum:
+          - FEMALE
+          - MALE
+        occupationId:
+          type: integer
+          format: int32
+        married:
+          type: boolean
+        identificationType:
+          type: string
+          enum:
+          - NATIONAL_ID
+          - CITIZEN_ID
+          - PASSPORT
+          - MILITARY_ID
+          - BIRTH_CERTIFICATE
+          description: 
+          
+        identificationId:
+          maxLength: 25
+          minLength: 0
+          type: string
+        phoneNumber:
+          maxLength: 11
+          minLength: 0
+          pattern: "(84|0[3|5|7|8|9])+([0-9]{8})\\b|(84|0[3|5|7|8|9])+([0-9]{9})\\\
+            b"
+          type: string
+        addresses:
+          type: array
+          items:
+            $ref: '#/components/schemas/Address'
+        type:
+          type: string
+          enum:
+          - MAIN
+          - ADDITIONAL
+    CreateQuotationRequest:
+      required:
+      - assureds
+      - customer
+      - productPackage
+      - quotationDate
+      type: object
+      properties:
+        quotationDate:
+          type: string
+          format: date
+        customer:
+          $ref: '#/components/schemas/Customer'
+        assureds:
+          type: array
+          items:
+            $ref: '#/components/schemas/Assured'
+        productPackage:
+          $ref: '#/components/schemas/ProductPackage'
+        additionalProducts:
+          type: array
+          items:
+            $ref: '#/components/schemas/AdditionalProduct'
+        amounts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Amount'
+    Customer:
+      required:
+      - dob
+      - fullName
+      - gender
+      - identificationId
+      - identificationType
+      - married
+      - occupationId
+      type: object
+      properties:
+        fullName:
+          type: string
+        dob:
+          type: string
+          format: date
+        gender:
+          type: string
+          enum:
+          - FEMALE
+          - MALE
+        occupationId:
+          type: integer
+          format: int32
+        married:
+          type: boolean
+        identificationType:
+          type: string
+          enum:
+          - NATIONAL_ID
+          - CITIZEN_ID
+          - PASSPORT
+          - MILITARY_ID
+          - BIRTH_CERTIFICATE
+        identificationId:
+          maxLength: 25
+          minLength: 0
+          type: string
+        phoneNumber:
+          maxLength: 11
+          minLength: 0
+          pattern: "(84|0[3|5|7|8|9])+([0-9]{8})\\b|(84|0[3|5|7|8|9])+([0-9]{9})\\\
+            b"
+          type: string
+        addresses:
+          type: array
+          items:
+            $ref: '#/components/schemas/Address'
+    ProductPackage:
+      required:
+      - benefitType
+      - paymentPeriod
+      - periodicPremium
+      - policyTerm
+      - premiumTerm
+      - sumAssured
+      type: object
+      properties:
+        benefitType:
+          type: string
+          enum:
+          - BASIC
+          - ADVANCED
+        policyTerm:
+          type: integer
+          format: int32
+        premiumTerm:
+          type: integer
+          format: int32
+        paymentPeriod:
+          type: string
+          enum:
+          - ANNUAL
+          - SEMI_ANNUAL
+          - QUARTERLY
+        sumAssured:
+          type: number
+        periodicPremium:
+          type: number
+        discountCode:
+          type: string
+          enum:
+          - NOT_APPLY
+          - DISCOUNT_FOR_MBAL_STAFF
+    AccountByInterestRate:
+      type: object
+      properties:
+        selectedRate:
+          $ref: '#/components/schemas/SelectedRate'
+        committedRate:
+          $ref: '#/components/schemas/CommittedRate'
+    BenefitByInvestmentRate:
+      type: object
+      properties:
+        lowRate:
+          $ref: '#/components/schemas/LowRate'
+        highRate:
+          $ref: '#/components/schemas/HighRate'
+    CashFlow:
+      type: object
+      properties:
+        yearItems:
+          type: array
+          items:
+            $ref: '#/components/schemas/YearItem'
+    CommittedRate:
+      type: object
+      properties:
+        baseAccountValue:
+          type: number
+        topupAccountValue:
+          type: number
+        accountValue:
+          type: number
+        surenderValue:
+          type: number
+    HighRate:
+      type: object
+      properties:
+        deathBenefit:
+          type: number
+        loyaltyBonus:
+          type: number
+        accountValue:
+          type: number
+        surenderValue:
+          type: number
+    LowRate:
+      type: object
+      properties:
+        deathBenefit:
+          type: number
+        loyaltyBonus:
+          type: number
+        accountValue:
+          type: number
+        surenderValue:
+          type: number
+    QuotationModel:
+      type: object
+      properties:
+        quotationId:
+          type: string
+        submissionId:
+          type: string
+        cashFlow:
+          $ref: '#/components/schemas/CashFlow'
+    SelectedRate:
+      type: object
+      properties:
+        baseAccountValue:
+          type: number
+        topupAccountValue:
+          type: number
+        accountValue:
+          type: number
+        surenderValue:
+          type: number
+    YearItem:
+      type: object
+      properties:
+        policyYear:
+          type: integer
+          format: int32
+        insuredAge:
+          type: integer
+          format: int32
+        basePremium:
+          type: number
+        topupPremium:
+          type: number
+        withdrawal:
+          type: number
+        accountByInterestRate:
+          $ref: '#/components/schemas/AccountByInterestRate'
+        benefitByInvestment:
+          $ref: '#/components/schemas/BenefitByInvestmentRate'
+    AddressRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        name:
+          type: string
+        phoneNumber:
+          pattern: "(84|0[3|5|7|8|9])+([0-9]{8})\\b|(84|0[3|5|7|8|9])+([0-9]{9})\\\
+            b"
+          type: string
+        zipcode:
+          type: string
+        provinceName:
+          type: string
+        districtName:
+          type: string
+        wardName:
+          type: string
+        line1:
+          type: string
+        line2:
+          type: string
+    CreateUlProcessRequest:
+      required:
+      - customer
+      - productPackageCode
+      type: object
+      properties:
+        customer:
+          $ref: '#/components/schemas/CustomerRequest'
+        productPackageCode:
+          description: Product Package Code
+          maxLength: 50
+          type: string
+    CustomerRequest:
+      required:
+      - fullName
+      - identificationNumber
+      - identificationType
+      - phoneNumber
+      type: object
+      properties:
+        fullName:
+          maxLength: 255
+          type: string
+          description: Full name of customer
+        dob:
+          type: string
+          format: date
+        gender:
+          type: string
+          enum:
+          - FEMALE
+          - MALE
+        nationalityCode:
+          type: string
+        email:
+          pattern: "^(?=.{1,64}@)[A-Za-z0-9_-]+(\\.[A-Za-z0-9_-]+)*@[^-][A-Za-z0-9-]+(\\\
+            .[A-Za-z0-9-]+)*(\\.[A-Za-z]{2,})$"
+          type: string
+        phoneNumber:
+          pattern: "(84|0[3|5|7|8|9])+([0-9]{8})\\b|(84|0[3|5|7|8|9])+([0-9]{9})\\\
+            b"
+          type: string
+        address:
+          $ref: '#/components/schemas/AddressRequest'
+        occupationId:
+          type: integer
+          format: int32
+        identificationType:
+          type: string
+          enum:
+          - NATIONAL_ID
+          - CITIZEN_ID
+          - PASSPORT
+          - MILITARY_ID
+          - BIRTH_CERTIFICATE
+        identificationNumber:
+          type: string
+      description: Customer information
+    AddressResponse:
+      type: object
+      properties:
+        title:
+          type: string
+        name:
+          type: string
+        phoneNumber:
+          type: string
+        zipcode:
+          type: string
+        provinceName:
+          type: string
+        districtName:
+          type: string
+        wardName:
+          type: string
+        line1:
+          type: string
+        line2:
+          type: string
+    AnswerResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        value:
+          type: string
+        ordinal:
+          type: integer
+          format: int32
+    FamilyMemberResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        fullName:
+          type: string
+        relationshipInsurancePerson:
+          type: string
+          enum:
+          - POLICY_HOLDER
+          - INSURED_PERSON
+          - COUPLE
+          - CHILDREN
+          - PARENT
+          - MOTHER
+          - FATHER
+        age:
+          type: integer
+          format: int32
+        healthDetail:
+          type: string
+    InsurancePersonResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        fullName:
+          type: string
+        identificationType:
+          type: string
+          enum:
+          - NATIONAL_ID
+          - CITIZEN_ID
+          - PASSPORT
+          - MILITARY_ID
+          - BIRTH_CERTIFICATE
+        identificationNumber:
+          type: string
+        dob:
+          type: string
+          format: date-time
+        gender:
+          type: string
+          enum:
+          - FEMALE
+          - MALE
+        occupationId:
+          type: integer
+          format: int32
+        address:
+          $ref: '#/components/schemas/AddressResponse'
+        nationalityCode:
+          type: string
+        email:
+          type: string
+        phoneNumber:
+          type: string
+        quizzes:
+          type: array
+          items:
+            $ref: '#/components/schemas/QuizResponse'
+        familyMembers:
+          type: array
+          items:
+            $ref: '#/components/schemas/FamilyMemberResponse'
+        otherInsuranceClaims:
+          type: array
+          items:
+            $ref: '#/components/schemas/OtherInsuranceClaimResponse'
+        otherDeclinedContracts:
+          type: array
+          items:
+            $ref: '#/components/schemas/OtherDeclinedContractResponse'
+        otherActiveContracts:
+          type: array
+          items:
+            $ref: '#/components/schemas/OtherActiveContractResponse'
+        usCitizen:
+          type: boolean
+    OtherActiveContractResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        companyName:
+          type: string
+        policyNumber:
+          type: string
+        policyEffectiveDate:
+          type: string
+          format: date
+        amount:
+          type: number
+    OtherDeclinedContractResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        companyName:
+          type: string
+        amount:
+          type: number
+        commenceDate:
+          type: string
+          format: date
+        status:
+          type: string
+          enum:
+          - ACTIVE
+          - PENDING
+          - CANCELED
+          - REJECTED
+          - APPROVED
+          - PAUSING
+        policyNumber:
+          type: string
+        reason:
+          type: string
+    OtherInsuranceClaimResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        companyName:
+          type: string
+        amount:
+          type: number
+        reason:
+          type: string
+        policyNumber:
+          type: string
+        dateOfIssue:
+          type: string
+          format: date
+        status:
+          type: string
+          enum:
+          - ACTIVE
+          - PENDING
+          - CANCELED
+          - REJECTED
+          - APPROVED
+          - PAUSING
+    ProductResponse:
+      type: object
+      properties:
+        policyTerm:
+          type: integer
+          format: int32
+        premiumTerm:
+          type: integer
+          format: int32
+        paymentPeriod:
+          type: string
+          enum:
+          - ANNUAL
+          - SEMI_ANNUAL
+          - QUARTERLY
+        sumAssured:
+          type: number
+        periodicPremium:
+          type: number
+        discountGroup:
+          type: string
+          enum:
+          - NOT_APPLY
+          - DISCOUNT_FOR_MBAL_STAFF
+        baseInsuranceFee:
+          type: number
+        topupInsuranceFee:
+          type: number
+    QuizResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        label:
+          type: string
+        answers:
+          type: array
+          items:
+            $ref: '#/components/schemas/AnswerResponse'
+    RefererResponse:
+      type: object
+      properties:
+        code:
+          type: string
+        name:
+          type: string
+        phoneNumber:
+          type: string
+    UlProcessResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        quotationDate:
+          type: string
+          format: date
+        productPackageCode:
+          type: string
+        policyHolder:
+          $ref: '#/components/schemas/InsurancePersonResponse'
+        lifeAssured:
+          $ref: '#/components/schemas/InsurancePersonResponse'
+        productPackage:
+          $ref: '#/components/schemas/ProductResponse'
+        referer:
+          $ref: '#/components/schemas/RefererResponse'
+        quotationCode:
+          type: string
+        submissionCode:
+          type: string
+        applicationNumber:
+          type: string
+        policyNumber:
+          type: string
+        quotationStatus:
+          type: string
+          enum:
+          - NONE
+          - QUOTING
+          - QUOTED
+        applicationStatus:
+          type: string
+          enum:
+          - NONE
+          - DRAFT
+          - WORKING
+          - SUBMITTED
+          - ISSUED
+          - REJECTED
+        appQuestionNumber:
+          type: integer
+          format: int32
+    QuotationRequest:
+      required:
+      - customer
+      - productPackageCode
+      type: object
+      properties:
+        quotationDate:
+          pattern: YYYY-MM-dd
+          type: string
+          description: Date of quotation
+          format: date
+        customer:
+          $ref: '#/components/schemas/CustomerRequest'
+        productPackageCode:
+          maxLength: 50
+          type: string
+          description: Code of package
+    SendEmailRequest:
+      required:
+      - recipient
+      type: object
+      properties:
+        recipient:
+          type: string
+          description: Email of recipient
+    ErrorModel:
+      type: object
+      properties:
+        statusCode:
+          type: integer
+          description: Http status code
+          format: int32
+        messages:
+          type: array
+          description: List error message
+          items:
+            type: string
+            description: List error message
+        errorCode:
+          type: string
+        additionalData:
+          type: object
+    FileUploadResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+    AnswerRequest:
+      required:
+      - ordinal
+      - value
+      type: object
+      properties:
+        value:
+          maxLength: 255
+          type: string
+          description: Content of answer
+        ordinal:
+          minimum: 1
+          type: integer
+          description: Order of answer
+          format: int32
+      description: List answer
+    ApplicationRequest:
+      required:
+      - quizzes
+      - referer
+      type: object
+      properties:
+        referer:
+          $ref: '#/components/schemas/RefererRequest'
+        quizzes:
+          type: array
+          description: List of quiz and answer about health
+          items:
+            $ref: '#/components/schemas/QuizRequest'
+        familyMembers:
+          maxItems: 100
+          minItems: 1
+          type: array
+          items:
+            $ref: '#/components/schemas/FamilyMemberRequest'
+        otherDeclinedContracts:
+          maxItems: 100
+          minItems: 1
+          type: array
+          items:
+            $ref: '#/components/schemas/OtherDeclinedContractRequest'
+        otherInsuranceClaims:
+          maxItems: 100
+          minItems: 1
+          type: array
+          items:
+            $ref: '#/components/schemas/OtherInsuranceClaimRequest'
+        otherActiveContracts:
+          maxItems: 100
+          minItems: 1
+          type: array
+          items:
+            $ref: '#/components/schemas/OtherActiveContractRequest'
+        customer:
+          $ref: '#/components/schemas/CustomerApplicationRequest'
+    CustomerApplicationRequest:
+      required:
+      - usCitizen
+      type: object
+      properties:
+        usCitizen:
+          type: boolean
+      description: Customer information
+    FamilyMemberRequest:
+      required:
+      - fullName
+      - healthDetail
+      - relationshipInsurancePerson
+      type: object
+      properties:
+        fullName:
+          type: string
+        relationshipInsurancePerson:
+          type: string
+          enum:
+          - POLICY_HOLDER
+          - INSURED_PERSON
+          - COUPLE
+          - CHILDREN
+          - PARENT
+          - MOTHER
+          - FATHER
+        age:
+          maximum: 999
+          minimum: 1
+          type: integer
+          format: int32
+        healthDetail:
+          type: string
+    OtherActiveContractRequest:
+      required:
+      - amount
+      - companyName
+      - policyEffectiveDate
+      - policyNumber
+      type: object
+      properties:
+        companyName:
+          type: string
+        policyNumber:
+          type: string
+        amount:
+          maximum: 99999999999
+          exclusiveMaximum: false
+          minimum: 1
+          exclusiveMinimum: false
+          type: number
+        policyEffectiveDate:
+          type: string
+          format: date
+    OtherDeclinedContractRequest:
+      required:
+      - amount
+      - commenceDate
+      - companyName
+      - policyNumber
+      - reason
+      - status
+      type: object
+      properties:
+        companyName:
+          type: string
+        amount:
+          maximum: 99999999999
+          exclusiveMaximum: false
+          minimum: 1
+          exclusiveMinimum: false
+          type: number
+        policyNumber:
+          type: string
+        commenceDate:
+          type: string
+          format: date
+        status:
+          type: string
+          enum:
+          - ACTIVE
+          - PENDING
+          - CANCELED
+        reason:
+          type: string
+    OtherInsuranceClaimRequest:
+      required:
+      - amount
+      - companyName
+      - dateOfIssue
+      - policyNumber
+      - reason
+      - status
+      type: object
+      properties:
+        companyName:
+          type: string
+        amount:
+          maximum: 99999999999
+          exclusiveMaximum: false
+          minimum: 1
+          exclusiveMinimum: false
+          type: number
+        policyNumber:
+          type: string
+        dateOfIssue:
+          type: string
+          format: date
+        status:
+          type: string
+          enum:
+          - REJECTED
+          - APPROVED
+          - PAUSING
+        reason:
+          type: string
+    QuizRequest:
+      required:
+      - answers
+      - label
+      type: object
+      properties:
+        label:
+          maxLength: 50
+          type: string
+          description: "Label of question. Ex, 1,2,3.."
+        answers:
+          type: array
+          description: List answer
+          items:
+            $ref: '#/components/schemas/AnswerRequest'
+      description: Quiz and answer about health
+    RefererRequest:
+      required:
+      - code
+      - name
+      - phoneNumber
+      type: object
+      properties:
+        code:
+          maxLength: 50
+          type: string
+          description: Code of referer
+        name:
+          maxLength: 255
+          type: string
+          description: Name of referer
+        phoneNumber:
+          maxLength: 11
+          pattern: "[0-9]{11}"
+          type: string
+          description: Phone numer of referer
+      description: Referer information
+    NotifyPaymentModel:
+      required:
+      - applicationNumber
+      - success
+      type: object
+      properties:
+        applicationNumber:
+          type: string
+        success:
+          type: boolean
+        note:
+          type: string
+        transaction:
+          $ref: '#/components/schemas/TransactionModel'
+        source:
+          $ref: '#/components/schemas/SourceModel'
+    SourceModel:
+      type: object
+      properties:
+        phoneNumber:
+          type: string
+        name:
+          type: string
+        accountId:
+          type: string
+        cif:
+          type: string
+    TransactionModel:
+      required:
+      - amount
+      - code
+      type: object
+      properties:
+        amount:
+          type: number
+        fee:
+          type: number
+        code:
+          type: string
+        description:
+          type: string
+        completedAt:
+          type: string
+          format: date-time
+        paymentId:
+          type: string
+    NotifyPaymentResultModel:
+      type: object
+      properties:
+        result:
+          type: string
+          description: Nhận giá trị true or faild
+    PaginationModel:
+      type: object
+      properties:
+        pageNumber:
+          type: integer
+          format: int32
+        pageSize:
+          type: integer
+          format: int32
+        count:
+          type: integer
+          format: int32
+    PagingFilterResultModelUlProcessResponse:
+      type: object
+      properties:
+        pagination:
+          $ref: '#/components/schemas/PaginationModel'
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/UlProcessResponse'
+    PackageViewResponse:
+      type: object
+      properties:
+        code:
+          type: string
+          description: Code of package
+        groupName:
+          type: string
+          description: Group name of package
+        expiredDate:
+          type: string
+          description: Expire date of package
+          format: date-time
+        sumAssured:
+          type: integer
+          description: Sum of assured
+          format: int64
+        accidentBenefit:
+          type: integer
+          description: Accident benefit
+          format: int64
+        inpatientTreatmentBenefit:
+          type: integer
+          description: Inpatient treatment benefit
+          format: int64
+        paymentPeriod:
+          type: string
+          description: Payment period type
+          enum:
+          - ANNUAL
+          - SEMI_ANNUAL
+          - QUARTERLY
+        insuranceFee:
+          type: integer
+          description: Insurance Fee
+          format: int64
+        type:
+          type: string
+          description: Type
+          enum:
+          - ULLP_INVEST
+          - ULLP_PROTECT
+          - ULLP_PROTECT_HSCR
+    PolicyResponse:
+      type: object
+      properties:
+        policyNumber:
+          type: string
+          description: Mã hợp đồng
+        externalAppId:
+          type: string
+          description: số hồ sơ yêu cầu bảo hiểm
+        status:
+          type: string
+          description: Trạng thái hợp đồng, nhận 5 giá trị, sẽ bổ sung sau
+          enum:
+          - Active
+          - In Progess
+        policyHolder:
+          $ref: '#/components/schemas/PolicyHolder'
+        coverages:
+          type: array
+          items:
+            $ref: '#/components/schemas/Coverage'
+    PolicyHolder:
+      type: object
+      properties:
+        fullName:
+          type: string
+          description: Tên người được bảo hiểm
+        fullAddress:
+          type: string
+          description: Địa chỉ chi tiết
+        identifications:
+          type: array
+          items: 
+            $ref: '#/components/schemas/Identification'
+    Identification:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Số giấy tờ
+        type:
+          type: string
+          description: Loại giấy tờ tùy thân
+          enum:
+          - NATIONAL_ID
+          - CITIZEN_ID
+          - PASSPORT
+          - MILITARY_ID
+          - BIRTH_CERTIFICATE
+          - COMPANY_ID
+        issuePlace:
+          type: string
+          description: Nơi đăng ký
+        issueDate:
+          type: string
+          description: Ngày đăng ký
+        expiryDate:
+          type: string
+          description: Ngày đăng ký
+    Coverage:
+      type: object
+      properties:
+        productCode:
+          type: string
+          description: Mã sản phẩm
+        productName:
+          type: string
+          description: Tên sản phẩm
+        coverageYear:
+          type: string
+          description: Thời hạn bảo hiểm
+        startDate:
+          type: string
+          description: Ngày bắt đầu hiệu lực
+        endDate:
+          type: string
+          description: Ngày hết hạn
+        sumInsured:
+          type: number
+          description: Số tiền bảo hiểm
+    OccupationResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        nameVn:
+          type: string
+        nameEng:
+          type: string
+        groupId:
+          type: integer
+          format: int32
+        active:
+          type: boolean
